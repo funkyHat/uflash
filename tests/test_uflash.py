@@ -39,6 +39,15 @@ def test_hexlify():
     assert len(lines) == 5
 
 
+def test_unhexlify():
+    """
+    Ensure that we can get the script back out using unhexlify
+    """
+    hexlified = uflash.hexlify(TEST_SCRIPT)
+    unhexlified = uflash.unhexlify(hexlified)
+    assert unhexlified == TEST_SCRIPT
+
+
 def test_hexlify_empty_script():
     """
     The function returns an empty string if the script is empty.
@@ -82,6 +91,32 @@ def test_embed_no_runtime():
     with pytest.raises(ValueError) as ex:
         uflash.embed_hex(None)
     assert ex.value.args[0] == 'MicroPython runtime hex required.'
+
+
+def test_extract():
+    """
+    The script should be returned if there is one
+    """
+    python = uflash.hexlify(TEST_SCRIPT)
+    result = uflash.embed_hex(uflash._RUNTIME, python)
+    extracted = uflash.extract_script(result)
+    assert extracted == TEST_SCRIPT
+
+
+def test_extract_not_valid_hex():
+    """
+    Return a sensible message if the hex file isn't valid
+    """
+    with pytest.raises(ValueError) as e:
+        uflash.extract_script('invalid input')
+    assert 'Bad input hex file' in e.value.args[0]
+
+
+def test_extract_no_python():
+    """
+    What to do here?
+    """
+    assert uflash.extract_script(uflash._RUNTIME) == b''
 
 
 def test_find_microbit_posix_exists():
@@ -322,11 +357,27 @@ def test_main_two_args():
         assert mock_flash.called_once_with('foo.py', '/media/foo/bar')
 
 
-def test_main_extra_args_ignored():
+def test_extract_command():
     """
-    Any arguments more than two are ignored, with only the first two passed
-    into the flash() function.
+    Test the command-line script extract feature
     """
-    with mock.patch('uflash.flash') as mock_flash:
-        uflash.main(argv=['foo.py', '/media/foo/bar', 'baz', 'quux'])
-        assert mock_flash.called_once_with('foo.py', '/media/foo/bar')
+    with mock.patch('uflash.extract') as mock_extract:
+        uflash.main(argv=['-e', 'hex.hex', 'foo.py'])
+        assert mock_extract.called_once_with('hex.hex', 'foo.py')
+
+
+def test_extract_command_source_only():
+    """
+    If there is no target file the extract command should write to stdout
+    """
+    with mock.patch('uflash.extract') as mock_extract:
+        uflash.main(argv=['hex.hex'])
+        assert mock_extract.called_once_with('hex.hex')
+
+
+def test_extract_command_no_source():
+    """
+    If there is no source file the extract command should complain
+    """
+    with pytest.raises(SystemExit):
+        uflash.main(argv=['-e'])
