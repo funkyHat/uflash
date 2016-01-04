@@ -39,6 +39,16 @@ def get_version():
     return '.'.join([str(i) for i in _VERSION])
 
 
+def strfunc(s):
+    """
+    Compatibility for 2 & 3 str()
+    """
+    if sys.version_info[0] == 3:
+        return str(s, 'utf-8')
+    elif sys.version_info[0] == 2:
+        return str(s)
+
+
 def hexlify(script):
     """
     Takes the byte content of a Python script and returns a hex encoded
@@ -63,8 +73,8 @@ def hexlify(script):
     for i in range(0, len(data), 16):
         chunk = data[i:min(i + 16, len(data))]
         chunk = struct.pack('>BHB', len(chunk), addr & 0xffff, 0) + chunk
-        checksum = (-(sum(chunk))) & 0xff
-        hexline = ':%s%02X' % (str(binascii.hexlify(chunk), 'utf8').upper(),
+        checksum = (-(sum(bytearray(chunk)))) & 0xff
+        hexline = ':%s%02X' % (strfunc(binascii.hexlify(chunk)).upper(),
                                checksum)
         output.append(hexline)
         addr += 16
@@ -212,7 +222,8 @@ def flash(path_to_python=None, path_to_microbit=None):
     If the automatic discovery fails, then it will raise an IOError.
     """
     # Check for the correct version of Python.
-    if not (sys.version_info[0] == 3 and sys.version_info[1] >= 3):
+    if not (sys.version_info[0] == 3 and sys.version_info[1] >= 3
+            or sys.version_info[0] == 2 and sys.version_info[1] == 7):
         raise RuntimeError('Will only run on Python 3.3 or later.')
     # Grab the Python script (if needed).
     python_hex = ''
@@ -12676,3 +12687,7 @@ _RUNTIME = """:020000040000FA
 :0400000500011FE9EE
 :00000001FF
 """
+
+
+if __name__ == "__main__":
+    main()

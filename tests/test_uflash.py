@@ -6,7 +6,11 @@ import tempfile
 import os
 import os.path
 import ctypes
-from unittest import mock
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import pytest
 import uflash
@@ -299,10 +303,11 @@ def test_flash_wrong_python():
     Ensures a call to flash will fail if it's not reported that we're using
     Python 3.
     """
-    with mock.patch('sys.version_info', (2, 7, 9)):
-        with pytest.raises(RuntimeError) as ex:
-            uflash.flash()
-    assert ex.value.args[0] == 'Will only run on Python 3.3 or later.'
+    for version in [(2, 6, 3), (3, 2, 0)]:
+        with mock.patch('sys.version_info', version):
+            with pytest.raises(RuntimeError) as ex:
+                uflash.flash()
+        assert ex.value.args[0] == 'Will only run on Python 3.3 or later.'
 
 
 def test_main_no_args():
