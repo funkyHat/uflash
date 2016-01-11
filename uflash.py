@@ -264,28 +264,21 @@ def main(argv=None):
     """
     if not argv:
         argv = sys.argv[1:]
-    arg_len = len(argv)
     try:
-        if arg_len == 0:
-            flash()
-        elif arg_len >= 1:
-            parser = argparse.ArgumentParser(description=_HELP_TEXT)
-            parser.add_argument('source')
-            parser.add_argument('target', nargs='?', default=None)
-            parser.add_argument('-e', '--extract',
-                                action='store_true',
-                                help="""Extract python source from a hex file
-                                instead of creating the hex file""",
-                                )
-            args = parser.parse_args(argv)
+        parser = argparse.ArgumentParser(description=_HELP_TEXT)
+        parser.add_argument('source', nargs='?', default=None)
+        parser.add_argument('target', nargs='?', default=None)
+        parser.add_argument('-e', '--extract',
+                            action='store_true',
+                            help="""Extract python source from a hex file
+                            instead of creating the hex file""",
+                            )
+        args = parser.parse_args(argv)
 
-            if args.source == 'help':
-                print(_HELP_TEXT)
-                return
-            if args.extract:
-                extract(args.source, args.target)
-            else:
-                flash(args.source, args.target)
+        if args.extract:
+            extract(args.source, args.target)
+        else:
+            flash(args.source, args.target)
     except Exception as ex:
         # The exception of no return. Print the exception information.
         print(ex)
