@@ -64,13 +64,12 @@ def hexlify(script):
     script = script.replace(b'\r', b'\n')
     # Add header, pad to multiple of 16 bytes.
     data = b'MP' + struct.pack('<H', len(script)) + script
-    data = data + bytes(16 - len(data) % 16)
+    # Padding with null bytes in a 2/3 compatible way
+    data = data + (b'\x00' * (16 - len(data) % 16))
     assert len(data) <= 0x2000
     # Convert to .hex format.
-    output = []
+    output = [':020000040003F7']  # extended linear address, 0x0003.
     addr = _SCRIPT_ADDR
-    assert(_SCRIPT_ADDR >> 16 == 3)  # 0x0003 is hard coded in line below.
-    output.append(':020000040003F7')  # extended linear address, 0x0003.
     for i in range(0, len(data), 16):
         chunk = data[i:min(i + 16, len(data))]
         chunk = struct.pack('>BHB', len(chunk), addr & 0xffff, 0) + chunk
@@ -224,9 +223,9 @@ def flash(path_to_python=None, path_to_microbit=None):
     If the automatic discovery fails, then it will raise an IOError.
     """
     # Check for the correct version of Python.
-    if not (sys.version_info[0] == 3 and sys.version_info[1] >= 3
-            or sys.version_info[0] == 2 and sys.version_info[1] == 7):
-        raise RuntimeError('Will only run on Python 3.3 or later.')
+    if not ((sys.version_info[0] == 3 and sys.version_info[1] >= 3) or
+            (sys.version_info[0] == 2 and sys.version_info[1] >= 7)):
+        raise RuntimeError('Will only run on Python 2.7, or 3.3 and later.')
     # Grab the Python script (if needed).
     python_hex = ''
     if path_to_python:

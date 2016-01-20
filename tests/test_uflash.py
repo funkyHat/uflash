@@ -4,6 +4,7 @@ Tests for the uflash module.
 """
 import tempfile
 import os
+import sys
 import os.path
 import ctypes
 
@@ -14,6 +15,12 @@ except ImportError:
 
 import pytest
 import uflash
+
+
+if sys.version_info.major == 2:
+    import __builtin__ as builtins
+else:
+    import builtins
 
 
 TEST_SCRIPT = b"""from microbit import *
@@ -306,9 +313,8 @@ def test_flash_wrong_python():
     """
     for version in [(2, 6, 3), (3, 2, 0)]:
         with mock.patch('sys.version_info', version):
-            with pytest.raises(RuntimeError) as ex:
+            with pytest.raises(RuntimeError):
                 uflash.flash()
-        assert ex.value.args[0] == 'Will only run on Python 3.3 or later.'
 
 
 def test_main_no_args():
@@ -387,7 +393,7 @@ def test_extract_paths():
 
     with mock.patch('uflash.extract_script', mock_e) as mock_extract_script, \
             mock.patch('builtins.print') as mock_print, \
-            mock.patch('builtins.open', mock_o) as mock_open:
+            mock.patch.object(builtins, 'open', mock_o) as mock_open:
         uflash.extract('foo.hex')
         assert mock_open.called_once_with('foo.hex')
         assert mock_extract_script.called_once_with(mock.sentinel.file_handle)
