@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from sys import version_info
 from setuptools import setup
 from uflash import get_version
 
@@ -9,21 +8,6 @@ with open('README.rst') as f:
 with open('CHANGES.rst') as f:
     changes = f.read()
 
-
-install_requires = [
-    'pytest',
-    'pep8',
-    'pyflakes',
-    'coverage',
-    'sphinx',
-    'pytest-cov',
-]
-
-if version_info.major == 2:
-    install_requires.append([
-        'mock',
-        'future',
-    ])
 
 setup(
     name='uflash',
@@ -49,6 +33,5 @@ setup(
     ],
     entry_points={
         'console_scripts': ['uflash=uflash:main'],
-    },
-    install_requires=install_requires,
+    }
 )
