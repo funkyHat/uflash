@@ -44,10 +44,7 @@ def strfunc(s):
     """
     Compatibility for 2 & 3 str()
     """
-    if sys.version_info[0] == 3:
-        return str(s, 'utf-8')
-    elif sys.version_info[0] == 2:
-        return str(s)
+    return str(s) if sys.version_info[0] == 2 else str(s, 'utf-8')
 
 
 def hexlify(script):
