@@ -342,7 +342,7 @@ def test_main_first_arg_help():
     """
     If there is a single argument of "help", it prints some help.
     """
-    with mock.patch('builtins.print') as mock_print:
+    with mock.patch.object(builtins, 'print') as mock_print:
         uflash.main(argv=['help'])
         assert mock_print.called_once_with(uflash._HELP_TEXT)
 
@@ -352,7 +352,7 @@ def test_main_first_arg_not_python():
     If the first argument does not end in ".py" then it should display a useful
     error message.
     """
-    with mock.patch('builtins.print') as mock_print:
+    with mock.patch.object(builtins, 'print') as mock_print:
         uflash.main(argv=['foo.bar'])
         expected = ValueError('Python files must end in ".py".')
         assert mock_print.called_once_with(expected)
@@ -392,7 +392,7 @@ def test_extract_paths():
     mock_o.return_value.write = mock.Mock()
 
     with mock.patch('uflash.extract_script', mock_e) as mock_extract_script, \
-            mock.patch('builtins.print') as mock_print, \
+            mock.patch.object(builtins, 'print') as mock_print, \
             mock.patch.object(builtins, 'open', mock_o) as mock_open:
         uflash.extract('foo.hex')
         assert mock_open.called_once_with('foo.hex')
